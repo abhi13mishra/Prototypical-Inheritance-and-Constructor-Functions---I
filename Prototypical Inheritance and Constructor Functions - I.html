@@ -1,0 +1,78 @@
+<script>
+    
+function Car(make, model, year, type) {
+    this.make = make;
+    this.model = model;
+    this.year = year;
+    this.type = type; 
+    this.isAvailable = true;
+}
+
+function Customer(name) {
+    this.name = name;
+    this.rentedCars = [];
+}
+
+Customer.prototype.rentCar = function(car) {
+    if (car.isAvailable) {
+        car.isAvailable = false;
+        this.rentedCars.push(car);
+        console.log(`${this.name} rented a ${car.make} ${car.model}.`);
+    } else {
+        console.log(`Sorry, the ${car.make} ${car.model} is already rented.`);
+    }
+};
+
+Customer.prototype.returnCar = function(car) {
+    setTimeout(() => { 
+        car.isAvailable = true;
+        this.rentedCars = this.rentedCars.filter(c => c !== car);
+        console.log(`${this.name} returned the ${car.make} ${car.model}.`);
+    }, 2000);
+};
+
+function PremiumCustomer(name, discountRate) {
+    Customer.call(this, name); 
+    this.discountRate = discountRate;
+}
+
+PremiumCustomer.prototype = Object.create(Customer.prototype);
+PremiumCustomer.prototype.constructor = PremiumCustomer;
+
+function calculateRentalPrice(car, days, customer) {
+    const baseRate = 50; 
+    let rateMultiplier = car.type === "SUV" ? 1.5 : 1;
+    let totalPrice = baseRate * rateMultiplier * days;
+
+    if (customer instanceof PremiumCustomer) {
+        totalPrice *= (1 - customer.discountRate / 100);
+    }
+
+    return totalPrice;
+}
+
+function Maintenance(car, delay) {
+    console.log(`Maintenance started for ${car.make} ${car.model}.`);
+    setTimeout(() => {
+        car.isAvailable = true;
+        console.log(`${car.make} ${car.model} is now available after maintenance.`);
+    }, delay);
+}
+
+const car1 = new Car("Toyota", "Corolla", 2020, "Sedan");
+const car2 = new Car("Ford", "Explorer", 2021, "SUV");
+
+const customer1 = new Customer("Alice");
+const premiumCustomer = new PremiumCustomer("Bob", 10);
+
+
+customer1.rentCar(car1);
+premiumCustomer.rentCar(car2);
+console.log(`Total price for Alice: $${calculateRentalPrice(car1, 3, customer1)}`);
+console.log(`Total price for Bob (Premium): $${calculateRentalPrice(car2, 3, premiumCustomer)}`);
+
+
+customer1.returnCar(car1);
+premiumCustomer.returnCar(car2);
+Maintenance(car1, 3000);
+</script>
